@@ -1,13 +1,20 @@
-package food_ordering_system.DTO;
+package food_ordering_system.entity;
 
-public class CategoryDTO {
+import jakarta.persistence.*;
 
+@Entity
+@Table(name = "category")
+public class Category {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+
     private String name;
 
-    public CategoryDTO() {}
+    public Category() {}
 
-    public CategoryDTO(Long id, String name) {
+    public Category(Long id, String name) {
         this.id = id;
         this.name = name;
     }
