@@ -1,4 +1,7 @@
 package food_ordering_system.Repository;
 
-public class MenuRepository {
+import food_ordering_system.entity.Menu;
+import org.springframework.data.jpa.repository.JpaRepository;
+
+public interface MenuRepository extends JpaRepository<Menu, Long> {
 }
