@@ -12,12 +12,9 @@ public class Category {
 
     private String name;
 
-    public Category() {}
+    private String description;
 
-    public Category(Long id, String name) {
-        this.id = id;
-        this.name = name;
-    }
+    public Category() {}
 
     public Long getId() {
         return id;
@@ -33,5 +30,13 @@ public class Category {
 
     public void setName(String name) {
         this.name = name;
+    }
+
+    public String getDescription() {
+        return description;
+    }
+
+    public void setDescription(String description) {
+        this.description = description;
     }
 }
