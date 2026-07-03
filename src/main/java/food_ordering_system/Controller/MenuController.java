@@ -3,10 +3,9 @@ package food_ordering_system.Controller;
 import food_ordering_system.DTO.MenuDto;
 import food_ordering_system.Service.MenuService;
 import jakarta.validation.Valid;
+import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
 
 @RestController
 @RequestMapping("/api/menu")
@@ -27,10 +26,15 @@ public class MenuController {
     }
 
     @GetMapping
-    public ResponseEntity<List<MenuDto>> all() {
+    public ResponseEntity<Page<MenuDto>> all(
+            @RequestParam(required = false) Long categoryId,
+            @RequestParam(required = false) String search,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(required = false) String sort) {
 
         return ResponseEntity.ok(
-                menuService.getAllMenus());
+                menuService.getAllMenus(categoryId, search, page, size, sort));
     }
 
     @GetMapping("/{id}")
@@ -39,5 +43,22 @@ public class MenuController {
 
         return ResponseEntity.ok(
                 menuService.getMenuById(id));
+    }
+
+    @PutMapping("/{id}")
+    public ResponseEntity<MenuDto> update(
+            @PathVariable Long id,
+            @RequestBody @Valid MenuDto dto) {
+
+        return ResponseEntity.ok(
+                menuService.updateMenu(id, dto));
+    }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> delete(@PathVariable Long id) {
+
+        menuService.deleteMenu(id);
+
+        return ResponseEntity.noContent().build();
     }
 }

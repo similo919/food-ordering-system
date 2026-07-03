@@ -6,10 +6,11 @@ import food_ordering_system.Repository.CategoryRepository;
 import food_ordering_system.Repository.MenuRepository;
 import food_ordering_system.entity.Category;
 import food_ordering_system.entity.Menu;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
-
-import java.util.List;
-import java.util.stream.Collectors;
 
 @Service
 public class MenuServiceImpl implements MenuService {
@@ -38,12 +39,11 @@ public class MenuServiceImpl implements MenuService {
     }
 
     @Override
-    public List<MenuDto> getAllMenus() {
+    public Page<MenuDto> getAllMenus(Long categoryId, String search, int page, int size, String sort) {
+        Pageable pageable = PageRequest.of(page, size, buildSort(sort));
 
-        return menuRepository.findAll()
-                .stream()
-                .map(this::mapToDto)
-                .collect(Collectors.toList());
+        return menuRepository.findByFilters(categoryId, normalizeSearch(search), pageable)
+                .map(this::mapToDto);
     }
 
     @Override
@@ -54,6 +54,36 @@ public class MenuServiceImpl implements MenuService {
                         new ResourceNotFoundException("Menu not found"));
 
         return mapToDto(menu);
+    }
+
+    @Override
+    public MenuDto updateMenu(Long id, MenuDto dto) {
+
+        Menu menu = menuRepository.findById(id)
+                .orElseThrow(() ->
+                        new ResourceNotFoundException("Menu not found"));
+
+        Category category = categoryRepository.findById(dto.getCategoryId())
+                .orElseThrow(() ->
+                        new ResourceNotFoundException("Category not found"));
+
+        menu.setName(dto.getName());
+        menu.setDescription(dto.getDescription());
+        menu.setPrice(dto.getPrice());
+        menu.setImageUrl(dto.getImageUrl());
+        menu.setCategory(category);
+
+        return mapToDto(menuRepository.save(menu));
+    }
+
+    @Override
+    public void deleteMenu(Long id) {
+
+        Menu menu = menuRepository.findById(id)
+                .orElseThrow(() ->
+                        new ResourceNotFoundException("Menu not found"));
+
+        menuRepository.delete(menu);
     }
 
     private MenuDto mapToDto(Menu menu) {
@@ -82,5 +112,26 @@ public class MenuServiceImpl implements MenuService {
         menu.setCategory(category);
 
         return menu;
+    }
+
+    private Sort buildSort(String sort) {
+        if (sort == null || sort.isBlank()) {
+            return Sort.unsorted();
+        }
+
+        String[] parts = sort.split(",", 2);
+        if (parts.length != 2 || parts[0].isBlank() || parts[1].isBlank()) {
+            return Sort.unsorted();
+        }
+
+        return Sort.by(Sort.Direction.fromString(parts[1].trim()), parts[0].trim());
+    }
+
+    private String normalizeSearch(String search) {
+        if (search == null || search.isBlank()) {
+            return null;
+        }
+
+        return search.trim();
     }
 }

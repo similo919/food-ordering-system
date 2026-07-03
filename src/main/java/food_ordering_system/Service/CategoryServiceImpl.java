@@ -4,6 +4,8 @@ import food_ordering_system.DTO.CategoryDTO;
 import food_ordering_system.entity.Category;
 import food_ordering_system.Exception.CategoryNotFoundException;
 import food_ordering_system.Repository.CategoryRepository;
+import food_ordering_system.Repository.MenuRepository;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -13,9 +15,11 @@ import java.util.stream.Collectors;
 public class CategoryServiceImpl implements CategoryService {
 
     private final CategoryRepository repository;
+    private final MenuRepository menuRepository;
 
-    public CategoryServiceImpl(CategoryRepository repository) {
+    public CategoryServiceImpl(CategoryRepository repository, MenuRepository menuRepository) {
         this.repository = repository;
+        this.menuRepository = menuRepository;
     }
 
     private CategoryDTO mapToDTO(Category category) {
@@ -63,6 +67,10 @@ public class CategoryServiceImpl implements CategoryService {
     public void delete(Long id) {
         Category c = repository.findById(id)
                 .orElseThrow(() -> new CategoryNotFoundException("Category not found: " + id));
+
+        if (menuRepository.existsByCategoryId(id)) {
+            throw new DataIntegrityViolationException("Cannot delete category because menu items still reference it");
+        }
 
         repository.delete(c);
     }
